@@ -1,0 +1,8 @@
+development:
+  clients:
+    default:
+      database: es_dump
+      hosts:
+        - 127.0.0.1:27017
+      options:
+        max_pool_size: 25

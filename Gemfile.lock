@@ -1,0 +1,68 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    activemodel (5.1.4)
+      activesupport (= 5.1.4)
+    activesupport (5.1.4)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (~> 0.7)
+      minitest (~> 5.1)
+      tzinfo (~> 1.1)
+    bson (4.3.0)
+    coderay (1.1.2)
+    concurrent-ruby (1.0.5)
+    connection_pool (2.2.1)
+    dotenv (2.2.1)
+    elasticsearch (2.0.2)
+      elasticsearch-api (= 2.0.2)
+      elasticsearch-transport (= 2.0.2)
+    elasticsearch-api (2.0.2)
+      multi_json
+    elasticsearch-transport (2.0.2)
+      faraday
+      multi_json
+    faraday (0.14.0)
+      multipart-post (>= 1.2, < 3)
+    i18n (0.9.3)
+      concurrent-ruby (~> 1.0)
+    method_source (0.9.0)
+    minitest (5.11.3)
+    mongo (2.5.0)
+      bson (>= 4.3.0, < 5.0.0)
+    mongoid (6.3.0)
+      activemodel (~> 5.1)
+      mongo (>= 2.5.0, < 3.0.0)
+    multi_json (1.13.1)
+    multipart-post (2.0.0)
+    pry (0.11.3)
+      coderay (~> 1.1.0)
+      method_source (~> 0.9.0)
+    rack (2.0.3)
+    rack-protection (2.0.0)
+      rack
+    redis (4.0.1)
+    redis-namespace (1.6.0)
+      redis (>= 3.0.4)
+    sidekiq (5.0.5)
+      concurrent-ruby (~> 1.0)
+      connection_pool (~> 2.2, >= 2.2.0)
+      rack-protection (>= 1.5.0)
+      redis (>= 3.3.4, < 5)
+    thread_safe (0.3.6)
+    tzinfo (1.2.4)
+      thread_safe (~> 0.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dotenv
+  elasticsearch (= 2.0.2)
+  mongoid (= 6.3.0)
+  pry
+  redis (= 4.0.1)
+  redis-namespace
+  sidekiq (= 5.0.5)
+
+BUNDLED WITH
+   1.16.0
