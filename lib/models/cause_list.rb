@@ -27,5 +27,5 @@ class CauseList
 
   belongs_to :state, inverse_of: :cause_lists
   belongs_to :court_group, inverse_of: :cause_lists
-  has_many :cases, inverse_of: :cause_list, autosave: true, dependent: :destroy
+  has_many :cases, inverse_of: :cause_list, dependent: :destroy, autosave: true
 end

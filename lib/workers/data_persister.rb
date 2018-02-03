@@ -15,15 +15,19 @@ class DataPersister
   end
 
   def perform(data)
+    Sidekiq.logger.info '#' * 40
     source = data['_source']
+    Sidekiq.logger.info data.inspect
     begin
-      state = State.find_or_create_by! name: source['state'].downcase.strip, district: source['district'].downcase.strip
-      court_group = CourtGroup.find_or_create_by! category: source['court_group'].strip
+      state = State.find_or_create_by! name: source['state'].downcase, district: source['district'].downcase
+      court_group = CourtGroup.find_or_create_by! category: source['court_group'].downcase
       court_group.update({name: source['court']})
 
-      cl = CauseList.find_or_initialize_by es_index: data['_index'], es_type: data['_type'], es_id: source['_id']
+      cl = CauseList.find_or_initialize_by es_index: data['_index'], es_type: data['_type'],
+        cl_id: source['cl_id'], storage_id: source['storage_id']
       cl.state = state
       cl.court_group = court_group
+      cl.es_id = data['_id']
 
       %w[cl_id storage_id judges start_date end_date base_uri uri dated insert_time causelist_type
     extension court_location court].each do |w|
@@ -32,9 +36,21 @@ class DataPersister
 
       kase = cl.cases.build({ number: source['case_no'], cnr: source['cnr'],
                               code: source['case_code'], category: source['case_type'] })
+      unless kase.valid?
+        Sidekiq.logger.info 'kase-error' * 30
+        Sidekiq.logger.info kase.errors.inspect
+      end
+
+      if source['case_information'].nil? && source['petitioners'].nil? && source['respondents'].nil?
+        Sidekiq.logger.info 'ERROR!!!'
+        Sidekiq.logger.info 'Case informantion, petitioners and respondents are missing for the case'
+      end
       if source['case_information']
         kase.build_case_information({ information: source['case_information'] })
       else
+        Sidekiq.logger.info 'petitioners/respondents/' * 10
+        Sidekiq.logger.info source['petitioners'].inspect
+        Sidekiq.logger.info source['respondents'].inspect
         if source['petitioners']
           petitioners = generate_data(:petitioner, source['petitioners'].uniq)
           kase.parties.build petitioners
@@ -45,14 +61,23 @@ class DataPersister
         end
       end
       #TODO: persist casestatus_params
+      Sidekiq.logger.info 'summary-' * 10
+      Sidekiq.logger.info "Case: #{kase.valid?}"
+      Sidekiq.logger.info "Case information: #{kase.case_information.valid?}"
+      Sidekiq.logger.info "Cause List: #{cl.valid?}"
       if cl.save
-        Sidekiq.logger.info '***********************************************************************'
+        Sidekiq.logger.info '**************************************'
+        Sidekiq.logger.info "PERSISTED"
+        Sidekiq.logger.info "Cause List: #{cl.persisted?}"
+        Sidekiq.logger.info "Case: #{kase.persisted?}"
+        Sidekiq.logger.info "Case information: #{kase.case_information.persisted?}"
       else
-        Sidekiq.logger.info '=' * 50
+        Sidekiq.logger.info 'INVALID--' * 20
         Sidekiq.logger.info cl.errors.inspect
       end
     rescue StandardError => e
-      Sidekiq.logger.info '-' * 50
+      Sidekiq.logger.info '!@#!@#' * 20
+      Sidekiq.logger.info '!@#!@#' * 20
       Sidekiq.logger.info e.inspect
       Sidekiq.logger.info data.inspect
     end

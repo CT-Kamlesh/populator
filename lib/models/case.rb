@@ -18,6 +18,6 @@ class Case
   #index({ number: 1, category: 1, cause_list_id: 1 }, { unique: true })
 
   belongs_to :cause_list, inverse_of: :cases
-  has_many :parties, inverse_of: :case, autosave: true, dependent: :destroy
-  has_one :case_information, inverse_of: :case, autosave: true, dependent: :destroy
+  has_one :case_information, inverse_of: :case, dependent: :destroy, autosave: true
+  has_many :parties, inverse_of: :case, dependent: :destroy, autosave: true
 end
