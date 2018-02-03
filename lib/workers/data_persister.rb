@@ -19,23 +19,25 @@ class DataPersister
     source = data['_source']
     Sidekiq.logger.info data.inspect
     begin
-      state = State.find_or_create_by! name: source['state'].downcase, district: source['district'].downcase
-      court_group = CourtGroup.find_or_create_by! category: source['court_group'].downcase
-      court_group.update({name: source['court']})
+      state = State.find_or_create_by! name: source['state'].downcase.strip, district: source['district'].downcase.strip
+      court_group = CourtGroup.find_or_create_by! category: source['court_group'].downcase.strip
+      court_group.update({name: source['court'].strip})
 
-      cl = CauseList.find_or_initialize_by es_index: data['_index'], es_type: data['_type'],
-        cl_id: source['cl_id'], storage_id: source['storage_id']
-      cl.state = state
-      cl.court_group = court_group
-      cl.es_id = data['_id']
+      cl = CauseList.find_or_initialize_by es_index: data['_index'], es_type: data['_type'], storage_id: source['storage_id'].strip
+      # if cause list doesnt exist then assign attributes
+      if cl.new_record?
+        cl.state = state
+        cl.court_group = court_group
+        cl.es_id = data['_id']
 
-      %w[cl_id storage_id judges start_date end_date base_uri uri dated insert_time causelist_type
+        %w[cl_id storage_id judges start_date end_date base_uri uri dated insert_time causelist_type clauselist_type
     extension court_location court].each do |w|
-        cl.send "#{w}=", source[w]
+          cl.send "#{w}=", source[w].try(:strip) if source[w]
+        end
       end
 
-      kase = cl.cases.build({ number: source['case_no'], cnr: source['cnr'],
-                              code: source['case_code'], category: source['case_type'] })
+      kase = cl.cases.build({ number: source['case_no'].try(:strip), cnr: source['cnr'].try(:strip),
+                              code: source['case_code'].try(:strip), category: source['case_type'].try(:strip) })
       unless kase.valid?
         Sidekiq.logger.info 'kase-error' * 30
         Sidekiq.logger.info kase.errors.inspect
@@ -46,7 +48,7 @@ class DataPersister
         Sidekiq.logger.info 'Case informantion, petitioners and respondents are missing for the case'
       end
       if source['case_information']
-        kase.build_case_information({ information: source['case_information'] })
+        kase.build_case_information({ information: source['case_information'].try(:strip) })
       else
         Sidekiq.logger.info 'petitioners/respondents/' * 10
         Sidekiq.logger.info source['petitioners'].inspect

@@ -21,6 +21,7 @@ class CauseList
   field :court, type: String
 
   alias_attribute :causelist_type, :category
+  alias_attribute :clauselist_type, :category
   alias_attribute :insert_time, :inserted_at
 
   validates :cl_id, :storage_id, :inserted_at, presence: true
