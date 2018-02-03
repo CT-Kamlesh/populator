@@ -3,6 +3,6 @@ class ElasticSearchClient
   attr_reader :client
 
   def initialize
-    @client = Elasticsearch::Client.new host: '184.73.150.94', port: 9200
+    @client = Elasticsearch::Client.new host: ENV['ES_HOST'], port: ENV['ES_PORT']
   end
 end
